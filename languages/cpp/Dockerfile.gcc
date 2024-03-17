@@ -1,0 +1,37 @@
+FROM debian:11 as builder
+
+ARG VERSION="gcc-12.1.0"
+
+WORKDIR /build/
+
+RUN apt -y update
+RUN apt -y install build-essential perl python3 binutils binutils-dev lib32gcc-10-dev libc++-dev libgmp-dev libgmp3-dev libmpfr-dev mpc libmpc-dev libisl-dev gcc-multilib
+
+#ADD http://mirrors.concertpass.com/gcc/releases/${VERSION}/${VERSION}.tar.gz .
+COPY ${VERSION}.tar.gz .
+ADD http://mirrors.concertpass.com/gcc/releases/${VERSION}/sha512.sum .
+
+# Verify source code integrity
+RUN if [ "$(sha512sum $VERSION.tar.gz)" != "$(cat sha512.sum | grep $VERSION.tar.gz | grep -v sig)" ]; then exit 1; fi
+
+ARG LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu"
+
+# Configure, build, and install GCC
+RUN tar xzf ${VERSION}.tar.gz && cd $VERSION && ./configure && make -j $(nproc) && make test
+
+FROM debian:11 as installer
+
+RUN apt -y update
+RUN apt -y install make
+
+COPY --from=builder /build/ /build/
+
+WORKDIR /build/
+
+RUN make install
+
+FROM debian:11
+
+COPY --from=installer /usr/ /usr/
+
+CMD [ "g++" ]

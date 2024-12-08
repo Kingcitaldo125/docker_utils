@@ -11,6 +11,7 @@ WORKDIR /
 
 RUN rm -rf /vcpkg/${VCPKG_VERSION}.tar.gz && /vcpkg/vcpkg install fmt
 
-ENV PATH="$PATH:/vcpkg/"
+ENV VCPKG_ROOT="/vcpkg"
+ENV PATH="$PATH:/vcpkg"
 
 CMD [ "vcpkg" ]

@@ -4,12 +4,14 @@ RUN apt -y update && apt -y install build-essential
 
 WORKDIR /boosttemp/
 
-ADD https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_1_77_0.tar.gz .
+ARG BOOST_VER="1_87_0"
+ARG BOOST_VER_DOT="1.87.0"
 
-RUN tar xzf boost_1_77_0.tar.gz && \
-    cd boost_1_77_0 && \
+ADD https://archives.boost.io/release/${BOOST_VER_DOT}/source/boost_${BOOST_VER}.tar.gz .
+
+RUN tar xzf boost_${BOOST_VER}.tar.gz && \
+    cd boost_${BOOST_VER} && \
     ./bootstrap.sh && \
-    ./b2 -j $(nproc) && \
-    ./b2 install
+    ./b2 -j $(nproc) install
 
 CMD [ "/bin/bash" ]
